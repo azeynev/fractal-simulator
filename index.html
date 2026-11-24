@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фрактална Лаборатория - Интерактивен Симулатор</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0e2a 0%, #1a1b3a 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 15px;
+            background: rgba(20, 22, 50, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(100, 100, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.6rem;
+            background: linear-gradient(to right, #ff7e5f, #feb47b, #6a11cb, #2575fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(106, 17, 203, 0.3);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .tagline {
+            font-size: 1.15rem;
+            color: #a0a0ff;
+            max-width: 800px;
+            margin: 0 auto 10px;
+            line-height: 1.5;
+        }
+        
+        .subtitle {
+            font-size: 0.95rem;
+            color: #8a8ac4;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .simulator-section, .controls-section {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(20, 22, 50, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(100, 100, 255, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #6a9eff;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(106, 158, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .fractal-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background-color: #0a0b1a;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(100, 100, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        #fractalCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            display: block;
+        }
+        
+        .zoom-info {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #8bc5ff;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .coordinates-info {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #a0ffa0;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #a0a0ff;
+            z-index: 10;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+        
+        .fractal-type-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .fractal-type {
+            background: rgba(30, 33, 70, 0.8);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+            min-height: 85px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .fractal-type:hover {
+            transform: translateY(-3px);
+            background: rgba(40, 45, 90, 0.9);
+            border-color: rgba(106, 158, 255, 0.4);
+        }
+        
+        .fractal-type.active {
+            background: rgba(50, 60, 120, 0.95);
+            border-color: #6a9eff;
+            box-shadow: 0 0 15px rgba(106, 158, 255, 0.3);
+        }
+        
+        .fractal-type i {
+            font-size: 1.6rem;
+            color: #8bc5ff;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-title {
+            font-size: 1.1rem;
+            color: #a0a0ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .slider-value {
+            min-width: 45px;
+            text-align: center;
+            background: rgba(30, 33, 70, 0.8);
+            padding: 4px 8px;
+            border-radius: 8px;
+            color: #8bc5ff;
+            font-size: 0.9rem;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #0a0b1a, #2a2b5a);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6a9eff;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(106, 158, 255, 0.5);
+        }
+        
+        .color-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .color-label {
+            font-size: 0.85rem;
+            color: #a0a0ff;
+        }
+        
+        input[type="color"] {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            border: 2px solid rgba(100, 100, 255, 0.3);
+            cursor: pointer;
+            background: transparent;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(30, 33, 70, 0.8);
+            color: #a0a0ff;
+            border: 2px solid rgba(100, 100, 255, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .educational-section {
+            background: rgba(20, 22, 50, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(100, 100, 255, 0.1);
+        }
+        
+        .info-box {
+            background: rgba(30, 33, 70, 0.8);
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+        
+        .info-title {
+            color: #6a9eff;
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-text {
+            line-height: 1.6;
+            color: #d0d0ff;
+            font-size: 0.95rem;
+        }
+        
+        .highlight {
+            color: #ffb366;
+            font-weight: bold;
+        }
+        
+        .fractal-details {
+            display: none;
+            background: rgba(40, 45, 90, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .fractal-details.active {
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px 0;
+            color: #8a8ac4;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(100, 100, 255, 0.1);
+            margin-top: 30px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: #a0a0ff;
+            text-decoration: none;
+        }
+        
+        .footer-link:hover {
+            color: #6a9eff;
+            text-decoration: underline;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6a9eff;
+            font-size: 1.1rem;
+            background: rgba(10, 11, 26, 0.85);
+            padding: 10px 18px;
+            border-radius: 10px;
+            z-index: 5;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .preset-btn {
+            padding: 6px 12px;
+            background: rgba(40, 45, 90, 0.8);
+            border: 1px solid rgba(100, 100, 255, 0.3);
+            border-radius: 8px;
+            color: #a0a0ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(50, 60, 120, 0.9);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            h1 { font-size: 2rem; }
+            .fractal-canvas-container { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-infinity"></i> Фрактална Лаборатория</h1>
+            <p class="tagline">Интерактивен симулатор за изследване на фракталната геометрия. Увеличете, персонализирайте и изследвайте безкрайната сложност!</p>
+            <p class="subtitle">Образователен модул по математика и информатика</p>
+        </header>
+        
+        <div class="main-content">
+            <section class="simulator-section">
+                <h2 class="section-title"><i class="fas fa-eye"></i> Симулатор на Фрактали</h2>
+                
+                <div class="fractal-canvas-container">
+                    <canvas id="fractalCanvas"></canvas>
+                    <div class="zoom-info">
+                        Мащаб: <span id="zoomLevel">1.00x</span>
+                    </div>
+                    <div class="coordinates-info">
+                        Координати: <span id="coordinates">(0.00, 0.00)</span>
+                    </div>
+                    <div class="instructions">
+                        <i class="fas fa-mouse-pointer"></i> Кликни за увеличаване<br>
+                        <i class="fas fa-arrows-alt"></i> Задръж и влачи за преместване<br>
+                        <i class="fas fa-sync-alt"></i> Двоен клик за нулиране
+                    </div>
+                    <div class="loading" id="loadingIndicator">Генериране на фрактал...</div>
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-shapes"></i> Видове Фрактали</h2>
+                <div class="fractal-type-selector">
+                    <div class="fractal-type active" data-type="mandelbrot">
+                        <i class="fas fa-circle-notch"></i>
+                        <div>Множество на Манделброт</div>
+                    </div>
+                    <div class="fractal-type" data-type="julia">
+                        <i class="fas fa-snowflake"></i>
+                        <div>Множество на Жулиа</div>
+                    </div>
+                    <div class="fractal-type" data-type="tree">
+                        <i class="fas fa-tree"></i>
+                        <div>Фрактално Дърво</div>
+                    </div>
+                    <div class="fractal-type" data-type="koch">
+                        <i class="fas fa-star"></i>
+                        <div>Кохова снежинка</div>
+                    </div>
+                    <div class="fractal-type" data-type="sierpinski">
+                        <i class="fas fa-play"></i>
+                        <div>Триъгълник на Сиерпински</div>
+                    </div>
+                    <div class="fractal-type" data-type="fern">
+                        <i class="fas fa-leaf"></i>
+                        <div>Фрактална Папрат</div>
+                    </div>
+                </div>
+                
+                <div class="fractal-details active" id="mandelbrotDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Множеството на Манделброт</h3>
+                    <p class="info-text">Множеството на Манделброт е най-известният фрактал, открит от Беноа Манделброт през 1980 г. Дефинира се с формулата zₙ₊₁ = zₙ² + c, където z и c са комплексни числа. Показва безкрайна сложност при всяко увеличение.</p>
+                </div>
+                
+                <div class="fractal-details" id="juliaDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Множеството на Жулиа</h3>
+                    <p class="info-text">Множеството на Жулиа е кръстено на френския математик Гастон Жулиа. Тук c е фиксирана константа, а началната точка z₀ се променя в комплексната равнина. Движете мишката върху платното, за да променяте константата c в реално време.</p>
+                </div>
+                
+                <div class="fractal-details" id="treeDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Фракталното Дърво</h3>
+                    <p class="info-text">Фракталното дърво демонстрира самоподобието в природата. Стволът се разклонява рекурсивно на по-малки клони под фиксиран ъгъл, създавайки структура, наподобяваща естествена корона.</p>
+                </div>
+                
+                <div class="fractal-details" id="kochDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Коховата снежинка</h3>
+                    <p class="info-text">Представена от Хелге фон Кох през 1904 г. Всяка страна на равностранен триъгълник се разделя на три равни части, а средната се заменя с два сегмента, образуващи нов равностранен триъгълник. Периметърът клони към безкрайност при крайна площ.</p>
+                </div>
+                
+                <div class="fractal-details" id="sierpinskiDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Триъгълника на Сиерпински</h3>
+                    <p class="info-text">Описан от полския математик Вацлав Сиерпински през 1915 г. Получава се чрез рекурсивно премахване на централния триъгълник от всеки оставащ триъгълник. Има хаусдорфова размерност ln(3)/ln(2) ≈ 1.585.</p>
+                </div>
+                
+                <div class="fractal-details" id="fernDetails">
+                    <h3 class="info-title"><i class="fas fa-info-circle"></i> За Фракталната Папрат (Барнзли)</h3>
+                    <p class="info-text">Папратта на Барнзли се генерира чрез система от итерирани функции (IFS) — четири афинни трансформации, прилагани с определени вероятности. Отличен пример за математическо моделиране на биологични форми.</p>
+                </div>
+            </section>
+            
+            <section class="controls-section">
+                <h2 class="section-title"><i class="fas fa-sliders-h"></i> Контроли и Настройки</h2>
+                
+                <div class="control-group">
+                    <h3 class="control-title"><i class="fas fa-tachometer-alt"></i> Детайли и Итерации</h3>
+                    <div class="slider-container">
+                        <span>Бързо</span>
+                        <input type="range" id="iterationsSlider" min="10" max="500" value="100" step="10">
+                        <span>Детайлно</span>
+                        <div class="slider-value" id="iterationsValue">100</div>
+                    </div>
+                    <div class="preset-buttons">
+                        <div class="preset-btn" data-iterations="50">Бързо (50)</div>
+                        <div class="preset-btn" data-iterations="100">Стандарт (100)</div>
+                        <div class="preset-btn" data-iterations="250">Детайлно (250)</div>
+                        <div class="preset-btn" data-iterations="500">Макс. детайли (500)</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title"><i class="fas fa-palette"></i> Цветова Палитра</h3>
+                    <div class="color-controls">
+                        <div class="color-picker">
+                            <div class="color-label">Цвят 1</div>
+                            <input type="color" id="color1" value="#00008b">
+                        </div>
+                        <div class="color-picker">
+                            <div class="color-label">Цвят 2</div>
+                            <input type="color" id="color2" value="#0000ff">
+                        </div>
+                        <div class="color-picker">
+                            <div class="color-label">Цвят 3</div>
+                            <input type="color" id="color3" value="#00ffff">
+                        </div>
+                        <div class="color-picker">
+                            <div class="color-label">Цвят 4</div>
+                            <input type="color" id="color4" value="#ffff00">
+                        </div>
+                        <div class="color-picker">
+                            <div class="color-label">Цвят 5</div>
+                            <input type="color" id="color5" value="#ff8c00">
+                        </div>
+                    </div>
+                    <div class="preset-buttons">
+                        <div class="preset-btn" data-colors="ocean">Океан</div>
+                        <div class="preset-btn" data-colors="fire">Огън</div>
+                        <div class="preset-btn" data-colors="forest">Гора</div>
+                        <div class="preset-btn" data-colors="rainbow">Дъга</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title"><i class="fas fa-cog"></i> Дълбочина / Сложност</h3>
+                    <div class="slider-container">
+                        <span>Просто</span>
+                        <input type="range" id="complexitySlider" min="1" max="10" value="5">
+                        <span>Сложно</span>
+                        <div class="slider-value" id="complexityValue">5</div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="animateToggle">
+                            <span>Анимация на цветовете</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="showGridToggle">
+                            <span>Координатна мрежа</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="generateBtn">
+                        <i class="fas fa-sync-alt"></i> Генерирай
+                    </button>
+                    <button class="btn btn-secondary" id="randomBtn">
+                        <i class="fas fa-random"></i> Случаен
+                    </button>
+                    <button class="btn btn-secondary" id="resetBtn">
+                        <i class="fas fa-undo"></i> Нулиране
+                    </button>
+                </div>
+                
+                <div class="control-group" style="margin-top: 25px;">
+                    <h3 class="control-title"><i class="fas fa-download"></i> Експорт и Споделяне</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="saveImageBtn">
+                            <i class="fas fa-camera"></i> Запази PNG
+                        </button>
+                        <button class="btn btn-secondary" id="shareBtn">
+                            <i class="fas fa-share-alt"></i> Сподели линк
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <section class="educational-section">
+            <h2 class="section-title"><i class="fas fa-graduation-cap"></i> Образователни Материали</h2>
+            
+            <div class="info-box">
+                <h3 class="info-title"><i class="fas fa-question-circle"></i> Какво е фрактал?</h3>
+                <p class="info-text">
+                    <span class="highlight">Фракталите</span> са геометрични обекти, които притежават свойството самоподобие в различни мащаби. За разлика от класическите евклидови фигури с цяла размерност (линия = 1, квадрат = 2, куб = 3), фракталите имат дробна (фрактална) размерност.
+                </p>
+            </div>
+            
+            <div class="info-box" style="margin-bottom:0">
+                <h3 class="info-title"><i class="fas fa-flask"></i> Учебни Задачи</h3>
+                <p class="info-text">
+                    1. <span class="highlight">Увеличение в Манделброт:</span> Кликнете няколко пъти по границата на черната фигура, за да откриете миниатюрни копия на цялото множество.<br>
+                    2. <span class="highlight">Интерактивна Жулиа:</span> Изберете „Множество на Жулиа“ и движете мишката бавно по платното.<br>
+                    3. <span class="highlight">Рекурсия:</span> При Коховата снежинка и Триъгълника на Сиерпински променяйте плъзгача „Дълбочина / Сложност“ от 1 до 7.
+                </p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Фрактална лаборатория за образователни цели | Д-р Адем Ибушев Зейнев</p>
+            <div class="footer-links">
+                <a href="#" class="footer-link" id="showInstructions"><i class="fas fa-book"></i> Инструкции</a>
+                <a href="#" class="footer-link" id="showAbout"><i class="fas fa-info-circle"></i> За проекта</a>
+                <a href="#" class="footer-link" id="showTips"><i class="fas fa-lightbulb"></i> Полезни съвети</a>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('fractalCanvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            const fractalTypeElements = document.querySelectorAll('.fractal-type');
+            const iterationsSlider = document.getElementById('iterationsSlider');
+            const iterationsValue = document.getElementById('iterationsValue');
+            const complexitySlider = document.getElementById('complexitySlider');
+            const complexityValue = document.getElementById('complexityValue');
+            const colorInputs = document.querySelectorAll('input[type="color"]');
+            const generateBtn = document.getElementById('generateBtn');
+            const randomBtn = document.getElementById('randomBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const animateToggle = document.getElementById('animateToggle');
+            const showGridToggle = document.getElementById('showGridToggle');
+            const zoomLevelElement = document.getElementById('zoomLevel');
+            const coordinatesElement = document.getElementById('coordinates');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const saveImageBtn = document.getElementById('saveImageBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const presetIterations = document.querySelectorAll('.preset-btn[data-iterations]');
+            const presetColors = document.querySelectorAll('.preset-btn[data-colors]');
+            const fractalDetails = document.querySelectorAll('.fractal-details');
+            
+            let currentFractalType = 'mandelbrot';
+            let zoomLevel = 1.0;
+            let offsetX = 0, offsetY = 0;
+            let colorOffset = 0;
+            let animationId = null;
+            let isAnimating = false;
+            let isDragging = false;
+            let hasMovedDuringDrag = false;
+            let dragStartX = 0, dragStartY = 0;
+            let dragOffsetX = 0, dragOffsetY = 0;
+            let juliaCx = -0.7, juliaCy = 0.27015;
+            let isDrawing = false;
+            
+            const colorPresets = {
+                ocean: ['#00008b', '#0000ff', '#00ffff', '#00ffaa', '#0088ff'],
+                fire: ['#330000', '#cc0000', '#ff6600', '#ffff00', '#ffffff'],
+                forest: ['#003300', '#006600', '#00aa00', '#aaff00', '#ffff99'],
+                rainbow: ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff']
+            };
+            
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                loadingIndicator.style.display = 'none';
+                drawFractal();
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            fractalTypeElements.forEach(el => {
+                el.addEventListener('click', function() {
+                    fractalTypeElements.forEach(e => e.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFractalType = this.dataset.type;
+                    
+                    fractalDetails.forEach(detail => detail.classList.remove('active'));
+                    document.getElementById(`${currentFractalType}Details`).classList.add('active');
+                    
+                    zoomLevel = 1.0;
+                    offsetX = 0;
+                    offsetY = 0;
+                    zoomLevelElement.textContent = '1.00x';
+                    updateCoordinatesDisplay(0, 0);
+                    
+                    drawFractal();
+                });
+            });
+            
+            iterationsSlider.addEventListener('input', function() {
+                iterationsValue.textContent = this.value;
+                if (!isDrawing) drawFractal();
+            });
+            
+            complexitySlider.addEventListener('input', function() {
+                complexityValue.textContent = this.value;
+                if (!isDrawing) drawFractal();
+            });
+            
+            presetIterations.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    iterationsSlider.value = this.dataset.iterations;
+                    iterationsValue.textContent = this.dataset.iterations;
+                    drawFractal();
+                });
+            });
+            
+            presetColors.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const colors = colorPresets[this.dataset.colors];
+                    colorInputs.forEach((input, index) => {
+                        if (colors[index]) input.value = colors[index];
+                    });
+                    drawFractal();
+                });
+            });
+            
+            colorInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (!isDrawing) drawFractal();
+                });
+            });
+            
+            generateBtn.addEventListener('click', drawFractal);
+            
+            // Коректен генератор на HEX цветове за <input type="color">
+            function randomHexColor() {
+                return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            }
+            
+            randomBtn.addEventListener('click', function() {
+                const types = ['mandelbrot', 'julia', 'tree', 'koch', 'sierpinski', 'fern'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                
+                fractalTypeElements.forEach(el => el.classList.remove('active'));
+                document.querySelector(`.fractal-type[data-type="${randomType}"]`).classList.add('active');
+                currentFractalType = randomType;
+                
+                fractalDetails.forEach(detail => detail.classList.remove('active'));
+                document.getElementById(`${currentFractalType}Details`).classList.add('active');
+                
+                colorInputs.forEach(input => {
+                    input.value = randomHexColor();
+                });
+                
+                iterationsSlider.value = Math.floor(Math.random() * 250) + 60;
+                iterationsValue.textContent = iterationsSlider.value;
+                
+                complexitySlider.value = Math.floor(Math.random() * 7) + 2;
+                complexityValue.textContent = complexitySlider.value;
+                
+                juliaCx = +(Math.random() * 1.6 - 0.8).toFixed(3);
+                juliaCy = +(Math.random() * 1.6 - 0.8).toFixed(3);
+                
+                zoomLevel = 1.0;
+                offsetX = 0;
+                offsetY = 0;
+                zoomLevelElement.textContent = '1.00x';
+                updateCoordinatesDisplay(0, 0);
+                
+                drawFractal();
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                zoomLevel = 1.0;
+                offsetX = 0;
+                offsetY = 0;
+                zoomLevelElement.textContent = '1.00x';
+                updateCoordinatesDisplay(0, 0);
+                
+                document.getElementById('color1').value = '#00008b';
+                document.getElementById('color2').value = '#0000ff';
+                document.getElementById('color3').value = '#00ffff';
+                document.getElementById('color4').value = '#ffff00';
+                document.getElementById('color5').value = '#ff8c00';
+                
+                iterationsSlider.value = 100;
+                iterationsValue.textContent = '100';
+                
+                complexitySlider.value = 5;
+                complexityValue.textContent = '5';
+                
+                fractalTypeElements.forEach(el => el.classList.remove('active'));
+                document.querySelector('.fractal-type[data-type="mandelbrot"]').classList.add('active');
+                currentFractalType = 'mandelbrot';
+                
+                fractalDetails.forEach(detail => detail.classList.remove('active'));
+                document.getElementById('mandelbrotDetails').classList.add('active');
+                
+                juliaCx = -0.7;
+                juliaCy = 0.27015;
+                
+                drawFractal();
+            });
+            
+            animateToggle.addEventListener('change', function() {
+                isAnimating = this.checked;
+                if (isAnimating) {
+                    drawFractal();
+                } else if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            });
+            
+            showGridToggle.addEventListener('change', drawFractal);
+            
+            saveImageBtn.addEventListener('click', function() {
+                const link = document.createElement('a');
+                link.download = `fractal_${currentFractalType}_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+            
+            shareBtn.addEventListener('click', function() {
+                const settings = {
+                    type: currentFractalType,
+                    iterations: iterationsSlider.value,
+                    complexity: complexitySlider.value,
+                    colors: Array.from(colorInputs).map(input => input.value),
+                    zoom: zoomLevel,
+                    offsetX: offsetX,
+                    offsetY: offsetY,
+                    juliaCx: juliaCx,
+                    juliaCy: juliaCy
+                };
+                
+                const settingsString = btoa(JSON.stringify(settings));
+                const shareUrl = `${window.location.origin}${window.location.pathname}#${settingsString}`;
+                
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('Линкът с текущите настройки е копиран в клипборда!');
+                }).catch(() => {
+                    prompt('Копирайте този линк:', shareUrl);
+                });
+            });
+            
+            canvas.addEventListener('mousedown', function(e) {
+                if (currentFractalType === 'mandelbrot' || currentFractalType === 'julia') {
+                    isDragging = true;
+                    hasMovedDuringDrag = false;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragOffsetX = offsetX;
+                    dragOffsetY = offsetY;
+                    canvas.style.cursor = 'grabbing';
+                }
+            });
+            
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                if (currentFractalType === 'mandelbrot' || currentFractalType === 'julia') {
+                    const fx = (mouseX / canvas.width - 0.5) * (3.5 / zoomLevel) + offsetX - (currentFractalType === 'mandelbrot' ? 0.5 : 0);
+                    const fy = (mouseY / canvas.height - 0.5) * (2.2 / zoomLevel) + offsetY;
+                    updateCoordinatesDisplay(fx, fy);
+                    
+                    if (currentFractalType === 'julia' && !isDragging && !isDrawing) {
+                        juliaCx = (mouseX / canvas.width) * 3.0 - 1.5;
+                        juliaCy = (mouseY / canvas.height) * 2.0 - 1.0;
+                        drawFractal();
+                    }
+                }
+                
+                if (isDragging) {
+                    const dx = e.clientX - dragStartX;
+                    const dy = e.clientY - dragStartY;
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMovedDuringDrag = true;
+                    
+                    offsetX = dragOffsetX - (dx / canvas.width) * (3.5 / zoomLevel);
+                    offsetY = dragOffsetY - (dy / canvas.height) * (2.2 / zoomLevel);
+                    
+                    drawFractal();
+                }
+            });
+            
+            window.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+            
+            canvas.addEventListener('click', function(e) {
+                if (hasMovedDuringDrag) {
+                    hasMovedDuringDrag = false;
+                    return;
+                }
+                if (currentFractalType !== 'mandelbrot' && currentFractalType !== 'julia') return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const baseShiftX = currentFractalType === 'mandelbrot' ? -0.5 : 0;
+                const fx = (x / canvas.width - 0.5) * (3.5 / zoomLevel) + offsetX + baseShiftX;
+                const fy = (y / canvas.height - 0.5) * (2.2 / zoomLevel) + offsetY;
+                
+                offsetX = fx - baseShiftX;
+                offsetY = fy;
+                zoomLevel *= 1.8;
+                zoomLevelElement.textContent = zoomLevel.toFixed(2) + 'x';
+                updateCoordinatesDisplay(fx, fy);
+                
+                drawFractal();
+            });
+            
+            canvas.addEventListener('dblclick', function(e) {
+                e.preventDefault();
+                zoomLevel = 1.0;
+                offsetX = 0;
+                offsetY = 0;
+                zoomLevelElement.textContent = '1.00x';
+                updateCoordinatesDisplay(0, 0);
+                drawFractal();
+            });
+            
+            function updateCoordinatesDisplay(x, y) {
+                coordinatesElement.textContent = `(${x.toFixed(3)}, ${y.toFixed(3)})`;
+            }
+            
+            function drawFractal() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                
+                isDrawing = true;
+                const width = canvas.width;
+                const height = canvas.height;
+                const maxIterations = parseInt(iterationsSlider.value);
+                const complexity = parseInt(complexitySlider.value);
+                const colors = Array.from(colorInputs).map(input => input.value);
+                
+                ctx.fillStyle = '#0a0b1a';
+                ctx.fillRect(0, 0, width, height);
+                
+                switch(currentFractalType) {
+                    case 'mandelbrot':
+                        drawMandelbrot(width, height, maxIterations, colors);
+                        break;
+                    case 'julia':
+                        drawJulia(width, height, maxIterations, colors);
+                        break;
+                    case 'tree':
+                        drawFractalTree(width, height, complexity, colors);
+                        break;
+                    case 'koch':
+                        drawKochSnowflake(width, height, Math.min(complexity, 6), colors);
+                        break;
+                    case 'sierpinski':
+                        drawSierpinskiTriangle(width, height, Math.min(complexity, 8), colors);
+                        break;
+                    case 'fern':
+                        drawBarnsleyFern(width, height, maxIterations * 150, colors);
+                        break;
+                }
+                
+                if (showGridToggle.checked && (currentFractalType === 'mandelbrot' || currentFractalType === 'julia')) {
+                    drawGrid(width, height);
+                }
+                
+                loadingIndicator.style.display = 'none';
+                isDrawing = false;
+                
+                if (isAnimating) {
+                    colorOffset = (colorOffset + 0.015) % 1;
+                    animationId = requestAnimationFrame(drawFractal);
+                }
+            }
+            
+            function drawMandelbrot(width, height, maxIterations, colors) {
+                const imageData = ctx.createImageData(width, height);
+                const data = imageData.data;
+                const scaleX = 3.5 / zoomLevel;
+                const scaleY = 2.2 / zoomLevel;
+                
+                for (let x = 0; x < width; x++) {
+                    const cx = (x / width - 0.5) * scaleX + offsetX - 0.5;
+                    for (let y = 0; y < height; y++) {
+                        const cy = (y / height - 0.5) * scaleY + offsetY;
+                        let zx = 0, zy = 0, iteration = 0;
+                        
+                        while (zx * zx + zy * zy < 4 && iteration < maxIterations) {
+                            const temp = zx * zx - zy * zy + cx;
+                            zy = 2 * zx * zy + cy;
+                            zx = temp;
+                            iteration++;
+                        }
+                        
+                        const color = getColor(iteration, maxIterations, colors);
+                        const idx = (y * width + x) * 4;
+                        data[idx] = color.r;
+                        data[idx + 1] = color.g;
+                        data[idx + 2] = color.b;
+                        data[idx + 3] = 255;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+            
+            function drawJulia(width, height, maxIterations, colors) {
+                const imageData = ctx.createImageData(width, height);
+                const data = imageData.data;
+                const scaleX = 3.5 / zoomLevel;
+                const scaleY = 2.2 / zoomLevel;
+                
+                for (let x = 0; x < width; x++) {
+                    for (let y = 0; y < height; y++) {
+                        let zx = (x / width - 0.5) * scaleX + offsetX;
+                        let zy = (y / height - 0.5) * scaleY + offsetY;
+                        let iteration = 0;
+                        
+                        while (zx * zx + zy * zy < 4 && iteration < maxIterations) {
+                            const temp = zx * zx - zy * zy + juliaCx;
+                            zy = 2 * zx * zy + juliaCy;
+                            zx = temp;
+                            iteration++;
+                        }
+                        
+                        const color = getColor(iteration, maxIterations, colors);
+                        const idx = (y * width + x) * 4;
+                        data[idx] = color.r;
+                        data[idx + 1] = color.g;
+                        data[idx + 2] = color.b;
+                        data[idx + 3] = 255;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+            
+            function drawFractalTree(width, height, complexity, colors) {
+                const startX = width / 2;
+                const startY = height - 40;
+                const trunkLength = Math.min(width, height) / 4.2;
+                
+                function drawBranch(x, y, length, angle, depth) {
+                    if (depth > complexity) return;
+                    const endX = x + length * Math.sin(angle);
+                    const endY = y - length * Math.cos(angle);
+                    
+                    ctx.lineWidth = Math.max(1, complexity - depth + 1);
+                    ctx.strokeStyle = colors[depth % colors.length];
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                    
+                    if (depth < complexity) {
+                        const newLength = length * 0.72;
+                        drawBranch(endX, endY, newLength, angle + Math.PI / 6, depth + 1);
+                        drawBranch(endX, endY, newLength, angle - Math.PI / 6, depth + 1);
+                    }
+                }
+                
+                ctx.lineWidth = complexity + 2;
+                ctx.strokeStyle = colors[colors.length - 1];
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(startX, startY - trunkLength / 2);
+                ctx.stroke();
+                
+                drawBranch(startX, startY - trunkLength / 2, trunkLength, 0, 0);
+            }
+            
+            function drawKochSnowflake(width, height, complexity, colors) {
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const size = Math.min(width, height) * 0.36;
+                const angles = [-Math.PI / 2, Math.PI / 6, (5 * Math.PI) / 6];
+                
+                angles.forEach((angle, index) => {
+                    const nextAngle = angles[(index + 1) % 3];
+                    const startX = centerX + size * Math.cos(angle);
+                    const startY = centerY + size * Math.sin(angle);
+                    const endX = centerX + size * Math.cos(nextAngle);
+                    const endY = centerY + size * Math.sin(nextAngle);
+                    drawKochLine(startX, startY, endX, endY, complexity, colors[index % colors.length]);
+                });
+            }
+            
+            function drawKochLine(x1, y1, x2, y2, depth, color) {
+                if (depth === 0) {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    return;
+                }
+                const dx = x2 - x1, dy = y2 - y1;
+                const x3 = x1 + dx / 3, y3 = y1 + dy / 3;
+                const x4 = (x1 + x2) / 2 + (dy * Math.sqrt(3) / 6);
+                const y4 = (y1 + y2) / 2 - (dx * Math.sqrt(3) / 6);
+                const x5 = x1 + 2 * dx / 3, y5 = y1 + 2 * dy / 3;
+                
+                drawKochLine(x1, y1, x3, y3, depth - 1, color);
+                drawKochLine(x3, y3, x4, y4, depth - 1, color);
+                drawKochLine(x4, y4, x5, y5, depth - 1, color);
+                drawKochLine(x5, y5, x2, y2, depth - 1, color);
+            }
+            
+            function drawSierpinskiTriangle(width, height, complexity, colors) {
+                const size = Math.min(width, height) * 0.82;
+                const topX = width / 2;
+                const topY = (height - size * 0.866) / 2;
+                const leftX = topX - size / 2;
+                const leftY = topY + size * 0.866;
+                const rightX = topX + size / 2;
+                const rightY = leftY;
+                
+                function drawTriangle(x1, y1, x2, y2, x3, y3, depth) {
+                    if (depth === complexity) {
+                        ctx.fillStyle = colors[depth % colors.length];
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.lineTo(x3, y3);
+                        ctx.closePath();
+                        ctx.fill();
+                        return;
+                    }
+                    const m12x = (x1 + x2) / 2, m12y = (y1 + y2) / 2;
+                    const m23x = (x2 + x3) / 2, m23y = (y2 + y3) / 2;
+                    const m31x = (x3 + x1) / 2, m31y = (y3 + y1) / 2;
+                    
+                    drawTriangle(x1, y1, m12x, m12y, m31x, m31y, depth + 1);
+                    drawTriangle(m12x, m12y, x2, y2, m23x, m23y, depth + 1);
+                    drawTriangle(m31x, m31y, m23x, m23y, x3, y3, depth + 1);
+                }
+                drawTriangle(topX, topY, leftX, leftY, rightX, rightY, 0);
+            }
+            
+            function drawBarnsleyFern(width, height, pointsCount, colors) {
+                const transforms = [
+                    { a: 0, b: 0, c: 0, d: 0.16, e: 0, f: 0, p: 0.01 },
+                    { a: 0.85, b: 0.04, c: -0.04, d: 0.85, e: 0, f: 1.6, p: 0.85 },
+                    { a: 0.2, b: -0.26, c: 0.23, d: 0.22, e: 0, f: 1.6, p: 0.07 },
+                    { a: -0.15, b: 0.28, c: 0.26, d: 0.24, e: 0, f: 0.44, p: 0.07 }
+                ];
+                let x = 0, y = 0;
+                const scale = Math.min(width, height) / 10.5;
+                const cx = width / 2;
+                const cy = height - 25;
+                
+                for (let i = 0; i < pointsCount; i++) {
+                    const r = Math.random();
+                    let probSum = 0, t = transforms[0];
+                    for (const tr of transforms) {
+                        probSum += tr.p;
+                        if (r <= probSum) { t = tr; break; }
+                    }
+                    const nx = t.a * x + t.b * y + t.e;
+                    const ny = t.c * x + t.d * y + t.f;
+                    x = nx; y = ny;
+                    
+                    const colorIndex = Math.min(colors.length - 1, Math.floor((y / 10) * colors.length));
+                    ctx.fillStyle = colors[Math.max(0, colorIndex)];
+                    ctx.fillRect(cx + x * scale, cy - y * scale, 1.3, 1.3);
+                }
+            }
+            
+            function drawGrid(width, height) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                ctx.lineWidth = 1;
+                for (let i = 1; i < 10; i++) {
+                    ctx.beginPath(); ctx.moveTo((i / 10) * width, 0); ctx.lineTo((i / 10) * width, height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, (i / 10) * height); ctx.lineTo(width, (i / 10) * height); ctx.stroke();
+                }
+            }
+            
+            function getColor(iteration, maxIterations, colors) {
+                if (iteration === maxIterations) return { r: 5, g: 6, b: 18 };
+                let t = iteration / maxIterations;
+                if (isAnimating) t = (t + colorOffset) % 1;
+                
+                const colorIndex = Math.floor(t * colors.length) % colors.length;
+                const nextColorIndex = (colorIndex + 1) % colors.length;
+                const localT = (t * colors.length) % 1;
+                
+                const c1 = hexToRgb(colors[colorIndex]);
+                const c2 = hexToRgb(colors[nextColorIndex]);
+                
+                return {
+                    r: Math.round(c1.r + (c2.r - c1.r) * localT),
+                    g: Math.round(c1.g + (c2.g - c1.g) * localT),
+                    b: Math.round(c1.b + (c2.b - c1.b) * localT)
+                };
+            }
+            
+            function hexToRgb(hex) {
+                const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return res ? { r: parseInt(res[1], 16), g: parseInt(res[2], 16), b: parseInt(res[3], 16) } : { r: 0, g: 0, b: 0 };
+            }
+            
+            document.getElementById('showInstructions').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('ИНСТРУКЦИИ:\n1. Изберете фрактал от панела.\n2. Кликнете върху платното за увеличение (Zoom).\n3. Задръжте и влачете с мишката за преместване.\n4. Двоен клик връща началния мащаб.');
+            });
+            document.getElementById('showAbout').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Фрактална лаборатория — интерактивен образователен симулатор по математика и информатика.');
+            });
+            document.getElementById('showTips').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('СЪВЕТ: При множеството на Манделброт увеличете броя итерации (250–500), когато приближавате дълбоко по границата!');
+            });
+            
+            function checkForSharedSettings() {
+                if (window.location.hash) {
+                    try {
+                        const s = JSON.parse(atob(window.location.hash.substring(1)));
+                        if (s.type) {
+                            fractalTypeElements.forEach(el => el.classList.remove('active'));
+                            document.querySelector(`.fractal-type[data-type="${s.type}"]`).classList.add('active');
+                            currentFractalType = s.type;
+                            fractalDetails.forEach(d => d.classList.remove('active'));
+                            document.getElementById(`${currentFractalType}Details`).classList.add('active');
+                        }
+                        if (s.iterations) { iterationsSlider.value = s.iterations; iterationsValue.textContent = s.iterations; }
+                        if (s.complexity) { complexitySlider.value = s.complexity; complexityValue.textContent = s.complexity; }
+                        if (s.colors) s.colors.forEach((c, i) => { if (colorInputs[i]) colorInputs[i].value = c; });
+                        if (s.zoom) { zoomLevel = s.zoom; zoomLevelElement.textContent = zoomLevel.toFixed(2) + 'x'; }
+                        if (s.offsetX !== undefined) offsetX = s.offsetX;
+                        if (s.offsetY !== undefined) offsetY = s.offsetY;
+                        if (s.juliaCx !== undefined) juliaCx = s.juliaCx;
+                        if (s.juliaCy !== undefined) juliaCy = s.juliaCy;
+                    } catch (e) {}
+                }
+            }
+            
+            checkForSharedSettings();
+            drawFractal();
+        });
+    </script>
+</body>
+</html>
